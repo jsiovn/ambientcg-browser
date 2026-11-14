@@ -20,7 +20,7 @@ argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 ROOT = os.path.abspath(argv[0] if argv else os.path.join(os.path.dirname(__file__), ".."))
 # Pointers that must exist; every other ambientcg_* property is found and checked for removal anyway.
 SETTINGS = {"Scene.ambientcg_browser"}
-OPERATORS = ("search", "fetch", "apply", "cancel", "pick", "cache_folder", "cache_reset", "check_updates")
+OPERATORS = ("search", "fetch", "apply", "cancel", "pick", "browse", "close", "cache_folder", "cache_reset", "check_updates")
 failures = []
 
 
