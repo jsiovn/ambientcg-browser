@@ -6,8 +6,7 @@ ambientcg.com and adds its CC0 materials and HDRIs to the file. Unofficial: say 
 ## Working Principles
 
 How to approach any change: think before coding, keep it simple, make surgical edits, drive every task to a
-verified outcome.
-@.github/context/PRINCIPLES.md
+verified outcome. The rules are in `.claude/rules/working-principles.md`, which Claude Code loads by itself.
 
 ## Build & Test
 
