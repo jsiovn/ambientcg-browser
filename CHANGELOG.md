@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version is
 `version` in `ambientcg_browser/blender_manifest.toml`; publishing a version requires its section here.
 
+## [Unreleased]
+
+### Added
+
+- An **X** at the top right of the results window closes it.
+
+### Changed
+
+- **Browse Results** opens the results window beside the sidebar instead of over the panel, with fewer columns
+  when the room there is narrow. To place it, the add-on moves the mouse pointer there; where the system does
+  not allow that, the window opens over the panel as before.
+
 ## [1.0.0] - 2026-11-14
 
 First release. Free software under the GNU General Public License, either version 3 of the License, or (at your

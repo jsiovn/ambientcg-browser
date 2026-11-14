@@ -28,6 +28,8 @@ too; refresh=True asks AmbientCG first.
 The operators do the same with the panel's settings:
 `bpy.ops.ambientcg.fetch('EXEC_DEFAULT', True, asset_id="Rock035", attribute="1K-JPG", kind='MATERIAL')`
 returns at once: it downloads in the background, then applies through the timer.
+The results popup opens with `bpy.ops.ambientcg.browse(columns=8)` (4 to 8). wm.call_panel on it would reuse the
+width it was last opened with, and before 5.2 leave an X that does not close it.
 """
 
 import json
@@ -48,6 +50,10 @@ MARK_VERSION = 1
 PREFIX = "AmbientCG "
 _TICK = 0.25
 _BROWSER_COLUMNS = 8
+# The narrowest popup checked by hand. Its header gives the pager a third of the width, 8 units at 4 columns, about
+# what "1201–1224 of 2345" and the two arrows take: narrower clips it. Where 4 do not fit, the popup overlaps
+# the sidebar.
+_BROWSER_MIN_COLUMNS = 4
 _DEFAULT_RESOLUTION = "2K"
 _DEFAULT_FORMAT = "JPG"
 _OFFLINE = "Allow Online Access in Preferences > System > Network"
@@ -499,9 +505,9 @@ def _browser_cursor(context, beside, mouse_y):
     room_left = beside.x - gap
     room_right = window.width - (beside.x + beside.width) - gap
     room = max(room_left, room_right)
-    columns = int(min(_BROWSER_COLUMNS, max(1, (room - shadow) // tile)))
+    columns = int(min(_BROWSER_COLUMNS, max(_BROWSER_MIN_COLUMNS, (room - shadow) // tile)))
     layout_w = columns * tile
-    rows = -(-len(_results) // columns)
+    rows = -(-len(_results) // columns)          # never 0: ambientcg.browse polls for results
     columns_used = -(-len(_results) // rows)     # grid_flow balances its rows: 11 tiles in 8 columns make 6, not 8 + 3
     anchor_x, depth = 1.1 * unit + layout_w / 2, 1.55 * unit
     index = next((i for i, found in enumerate(_results) if found["id"] == _picked), None)
@@ -873,7 +879,7 @@ class AMBIENTCG_OT_browse(bpy.types.Operator):
     bl_description = "Show the results as a grid of thumbnails"
     bl_options = {'INTERNAL'}
 
-    columns: IntProperty(name="Columns", default=_BROWSER_COLUMNS, min=1, max=_BROWSER_COLUMNS,
+    columns: IntProperty(name="Columns", default=_BROWSER_COLUMNS, min=_BROWSER_MIN_COLUMNS, max=_BROWSER_COLUMNS,
                          options={'HIDDEN', 'SKIP_SAVE'})
 
     @classmethod
