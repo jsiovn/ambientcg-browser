@@ -9,7 +9,7 @@ tested on 4.2 LTS, 4.5 LTS and 5.2 LTS.
 ![The AmbientCG tab in Blender's sidebar, with the picked material on a sphere](site/assets/panel.webp)
 
 - **Search** by keyword, materials or HDRIs, sorted by popularity, date, name or downloads.
-- **Browse Results**: a window of thumbnails, 24 a page, with Prev and Next.
+- **Browse Results**: a window of thumbnails, 24 a page, with Prev and Next and an X to close it.
 - **Add Material**: downloads the maps once in the resolution and format you choose (1K to 16K, JPG or PNG; the
   size shows first), builds the material and puts it on the selected objects, by UV or by Box, Sphere or Tube
   projection.
