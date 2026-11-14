@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version is
 `version` in `ambientcg_browser/blender_manifest.toml`; publishing a version requires its section here.
 
+## [1.1.1] - 2026-11-14
+
+### Changed
+
+- A copy installed from extensions.blender.org leaves updates to Blender: the Update panel and the update part of
+  the preferences are hidden, and the add-on never adds its own repository there.
+
 ## [1.1.0] - 2026-11-14
 
 ### Added
