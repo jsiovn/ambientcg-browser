@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version is
 `version` in `ambientcg_browser/blender_manifest.toml`; publishing a version requires its section here.
 
-## [Unreleased]
+## [1.1.1] - 2026-11-14
 
 ### Changed
 
