@@ -1,9 +1,16 @@
 dist/
 __pycache__/
 
-# Beads / Dolt files (added by bd init)
-.dolt/
-*.db
-.beads-credential-key
 .beads/proxieddb/
+
+# BEGIN TEMPLATE AGENT WORKFLOW LOCAL-ONLY
+.beads-credential-key
+.beads/interactions.jsonl
+.beads/epic-runs
+.claude/scheduled_tasks.lock
+.claude/settings.local.json
+.bv/
+*.db
+.dolt/
 *.gate.lock*
+# END TEMPLATE AGENT WORKFLOW LOCAL-ONLY
