@@ -444,6 +444,7 @@ _thumbs = None   # Task
 _download = None # {"task", "asset", "attribute", "kind", "scene", "objects", "opts", "root", "cancelled"}
 _status = ""
 _browser = None  # the Region of the results popup, which can be gone: see _refresh_browser
+_browser_columns = _BROWSER_COLUMNS  # the popup is narrowed to what fits beside the sidebar: see _browser_cursor
 
 
 def _find(asset_id):
@@ -483,6 +484,39 @@ def _refresh_browser():
         except TypeError:
             continue
     _browser = None
+
+
+def _browser_cursor(context, beside, mouse_y):
+    """Where to put the cursor so that the results popup opens beside the region `beside` (the sidebar) instead of
+    over it, and how many columns fit there. Blender places a wm.call_panel popup relative to the cursor: the
+    depressed button, here the picked tile, lands on it at 80% of its width, or the popup's centre when nothing is
+    depressed (ui_block_func_POPOVER). The offsets below were measured on 4.2 and 5.2 at scale 1 and hold in units;
+    the window clamp catches the rest. Returns (x, y, columns)."""
+    window = context.window
+    system = context.preferences.system
+    unit = round(18 * system.ui_scale) + 2 * system.pixel_size   # U.widget_unit
+    gap, shadow, tile = 0.5 * unit, 2.25 * unit, 6 * unit      # the popup region is the layout plus 2.25 units
+    room_left = beside.x - gap
+    room_right = window.width - (beside.x + beside.width) - gap
+    room = max(room_left, room_right)
+    columns = int(min(_BROWSER_COLUMNS, max(1, (room - shadow) // tile)))
+    layout_w = columns * tile
+    rows = -(-len(_results) // columns)
+    columns_used = -(-len(_results) // rows)     # grid_flow balances its rows: 11 tiles in 8 columns make 6, not 8 + 3
+    anchor_x, depth = 1.1 * unit + layout_w / 2, 1.55 * unit
+    index = next((i for i, found in enumerate(_results) if found["id"] == _picked), None)
+    if index is not None:
+        row, col = divmod(index, columns_used)
+        pitch = (layout_w + 0.3 * unit) / columns_used
+        anchor_x = 1.1 * unit + col * pitch + 0.8 * (pitch - 0.3 * unit)
+        depth = (7.8 + 6.1 * row + (1.1 if status_text() else 0)) * unit
+    if room_left >= room_right:
+        left = beside.x - gap - (layout_w + shadow)
+    else:
+        left = beside.x + beside.width + gap
+    x = left + anchor_x
+    y = mouse_y + 1.5 * unit - depth             # the pager level with the button that opened the popup
+    return int(min(max(x, 0), window.width - 1)), int(min(max(y, 0), window.height - 1)), columns
 
 
 def _redraw():
@@ -829,6 +863,60 @@ class AMBIENTCG_OT_pick(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class AMBIENTCG_OT_browse(bpy.types.Operator):
+    """Open the results popup. wm.call_panel with keep_open draws the popover once before its region is shown, and a
+    block drawn then counts as a plain menu: template_popup_confirm attaches no close callback to the X. Blender 5.2
+    refreshes right after opening for that reason (UI_popover_panel_invoke, #151778); 4.2 and 4.5 do not, so do it
+    here."""
+    bl_idname = "ambientcg.browse"
+    bl_label = "Browse Results"
+    bl_description = "Show the results as a grid of thumbnails"
+    bl_options = {'INTERNAL'}
+
+    columns: IntProperty(name="Columns", default=_BROWSER_COLUMNS, min=1, max=_BROWSER_COLUMNS,
+                         options={'HIDDEN', 'SKIP_SAVE'})
+
+    @classmethod
+    def poll(cls, context):
+        return bool(_results)
+
+    def invoke(self, context, event):
+        # From the sidebar button the popup would cover the panel: narrow it to what fits beside the sidebar and
+        # move the cursor so that it opens there. The cursor stays: warping it back closes the popup in 4.2.
+        # context.region is not the sidebar here: a click on a button in an overlapping sidebar runs the operator
+        # with the 3D view's main region. Find the sidebar under the cursor instead.
+        area = context.area
+        sidebar = next((r for r in (area.regions if area is not None else ())
+                        if r.type == 'UI' and r.x <= event.mouse_x < r.x + r.width
+                        and r.y <= event.mouse_y < r.y + r.height), None)
+        if sidebar is not None:
+            x, y, self.columns = _browser_cursor(context, sidebar, event.mouse_y)
+            context.window.cursor_warp(x, y)
+        return self.execute(context)
+
+    def execute(self, context):
+        global _browser_columns
+        _browser_columns = self.columns
+        result = bpy.ops.wm.call_panel(name=AMBIENTCG_PT_browser.bl_idname, keep_open=True)
+        _refresh_browser()
+        return result
+
+
+class AMBIENTCG_OT_close(bpy.types.Operator):
+    """Run by the X in the results popup. The button is a template_popup_confirm: Blender closes the popup itself
+    when it is pressed. Here the region is only forgotten; a last redraw of the closing popup can note it again, and
+    _refresh_browser copes with a freed region anyway."""
+    bl_idname = "ambientcg.close"
+    bl_label = "Close Results"
+    bl_description = "Close the results"
+    bl_options = {'INTERNAL'}
+
+    def execute(self, context):
+        global _browser
+        _browser = None
+        return {'FINISHED'}
+
+
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
@@ -848,8 +936,7 @@ def _draw_search(layout, s):
         return None
     found = _find(_picked) or _results[0]
     box.template_icon(icon_value=_icon_of(found["id"]), scale=7.0)
-    op = box.operator("wm.call_panel", text="Browse Results", icon='IMAGE_BACKGROUND')
-    op.name, op.keep_open = AMBIENTCG_PT_browser.bl_idname, True
+    box.operator(AMBIENTCG_OT_browse.bl_idname, icon='IMAGE_BACKGROUND')
     _draw_pages(box)
     col = box.column(align=True)
     col.label(text=found["name"])
@@ -934,12 +1021,27 @@ class AMBIENTCG_PT_browser(bpy.types.Panel):
     def draw(self, context):
         global _browser
         _browser = context.region_popup
-        layout = self.layout
-        _draw_pages(layout)
+        # bl_ui_units_x is fixed at registration; a column of fixed width narrows the popup instead, since Blender
+        # sizes the block to its buttons. Everything goes into it. A plain column would be stretched to the parent's
+        # width, a left-aligned row keeps it at its own.
+        row = self.layout.row()
+        row.alignment = 'LEFT'
+        layout = row.column()
+        layout.ui_units_x = _browser_columns * 6
+        split = layout.split(factor=1 / 3)   # thirds: the pager centred in the middle one, the X at the right edge
+        split.label(text="")
+        rest = split.split(factor=0.5)
+        _draw_pages(rest)
+        sub = rest.row()
+        sub.alignment = 'RIGHT'
+        sub.emboss = 'NONE'
+        # The X closes the popup: a template_popup_confirm button does, a plain operator button in a keep_open
+        # popover cannot. An empty text would leave the button out, so a space; cancel_text="" leaves out Cancel.
+        sub.template_popup_confirm(AMBIENTCG_OT_close.bl_idname, text=" ", icon='X', cancel_text="")
         status = status_text()
         if status:
             layout.label(text=status, icon='SORTTIME' if _search is not None else 'INFO')
-        grid = layout.grid_flow(row_major=True, columns=_BROWSER_COLUMNS, even_columns=True, even_rows=True)
+        grid = layout.grid_flow(row_major=True, columns=_browser_columns, even_columns=True, even_rows=True)
         for found in _results:
             cell = grid.column(align=True)
             cell.template_icon(icon_value=_icon_of(found["id"]), scale=5.0)
@@ -971,6 +1073,8 @@ _classes = (
     AMBIENTCG_OT_apply,
     AMBIENTCG_OT_cancel,
     AMBIENTCG_OT_pick,
+    AMBIENTCG_OT_browse,
+    AMBIENTCG_OT_close,
     AMBIENTCG_PT_browser,
     AMBIENTCG_PT_main,
 )
