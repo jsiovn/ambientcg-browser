@@ -3,6 +3,11 @@
 **AmbientCG Browser**: a public, GPL-3.0-or-later Blender extension (`ambientcg_browser/`) that searches
 ambientcg.com and adds its CC0 materials and HDRIs to the file. Unofficial: say so wherever users read about it.
 
+## Working Principles
+
+How to approach any change: think before coding, keep it simple, make surgical edits, drive every task to a
+verified outcome. The rules are in `.claude/rules/working-principles.md`, which Claude Code loads by itself.
+
 ## Build & Test
 
 No package manager. Build = Blender's extension CLI; tests = plain Python for `api.py`, Blender for the rest.
@@ -82,3 +87,24 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   came from.
 - English only for UI strings and comments; comment only non-obvious *why*.
 - `blender_version_min = "4.2.0"`: keep to APIs that exist there, the `test` workflow checks it.
+
+## Git
+
+- **Branches:** `<type>/<short-description>`, kebab-case, the type from the commit list below: `feat/`, `fix/`,
+  `chore/`, `docs/`, `refactor/`, `test/`, `perf/`, `style/`, `build/`, `ci/`. Examples: `feat/results-close-button`,
+  `fix/popup-over-sidebar`, `docs/update-branch-guidelines`.
+- **Commits:** Conventional Commits, `<type>: <short summary>`, the summary imperative ("add", not "added" or
+  "adds") and ideally under 72 characters; an optional body after a blank line for more context.
+  - `feat`: a new feature
+  - `fix`: a bug fix
+  - `chore`: maintenance tasks, tooling, dependency updates (no production code change)
+  - `docs`: documentation-only changes
+  - `refactor`: code change that neither fixes a bug nor adds a feature
+  - `test`: adding or updating tests
+  - `perf`: performance improvements
+  - `style`: formatting/whitespace changes with no code behavior change
+  - `build`: changes to build system or external dependencies
+  - `ci`: changes to CI configuration/scripts
+
+  Examples: `feat: add a close button to the results popup`, `fix: open the results popup beside the sidebar`,
+  `docs: add working principles and git conventions`.
