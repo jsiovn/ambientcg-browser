@@ -1,0 +1,33 @@
+schema_version = "1.0.0"
+
+id = "ambientcg_browser"
+version = "1.0.0"
+name = "AmbientCG Browser"
+tagline = "Search ambientCG and add its CC0 materials and HDRIs"
+maintainer = "jsiovn"
+type = "add-on"
+
+website = "https://jsiovn.github.io/ambientcg-browser/"
+
+tags = ["Material", "Lighting", "Import-Export"]
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+copyright = [
+  "2026 jsiovn",
+]
+
+[permissions]
+# Searches, thumbnails and downloads come from ambientcg.com and its CDN; the update check reads the
+# published repository index over HTTPS.
+network = "Search and download from ambientcg.com; update check"
+# Downloads, thumbnails and saved searches are kept in the cache folder (the temp folder by default).
+files = "Save downloads and thumbnails in the cache folder"
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+]

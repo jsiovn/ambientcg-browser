@@ -1,0 +1,61 @@
+name: Bug report
+description: Something does not work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. AmbientCG Browser is an unofficial add-on: problems with the ambientCG
+        website or its assets belong to ambientCG, not here.
+  - type: input
+    id: blender
+    attributes:
+      label: Blender version
+      description: Help › About Blender, e.g. 4.5.3 LTS
+    validations:
+      required: true
+  - type: input
+    id: addon
+    attributes:
+      label: AmbientCG Browser version
+      description: Shown in the panel's Update section and in Preferences › Add-ons
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Windows 11, macOS 15 (Apple Silicon), Ubuntu 24.04 …
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install it?
+      options:
+        - Dragged the button of the install page onto Blender
+        - Added the repository URL in Get Extensions
+        - Install from Disk
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: The steps that lead to it, and the asset and resolution if it is about one (e.g. Rock035, 2K-JPG).
+    validations:
+      required: true
+  - type: textarea
+    id: console
+    attributes:
+      label: System console output
+      description: >-
+        Windows: Window › Toggle System Console. macOS / Linux: start Blender from a terminal. Paste the lines
+        around the problem; those starting with "AmbientCG Browser:" say why a search or a download failed.
+      render: text
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Screenshots, a custom cache folder, a proxy or firewall, online access on or off …
