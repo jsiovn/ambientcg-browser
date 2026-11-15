@@ -1,147 +1,132 @@
 ---
 name: build-and-test
-description: "Use after implementing changes to run the exact verification commands from the current execution plan. This stage-1 version is intentionally generic and should be specialized per repo once the runtime workflow is clear."
+description: "Run this repo's actual verification: plain unittest, the Blender extension build, and the headless Blender smoke tests. Use after implementing changes."
 ---
 
 # Build and Test
 
 **Workflow position:** Executor session, between implementation (step 3) and verification (step 6). See BEADS_WORKFLOW.md.
 
-Validate only the components affected by the current changes.
+## Stack
 
-This scaffold is the **stage 1** validator for a brand-new repo. It does not assume a stack, runtime, package manager, build tool, or deployment shape.
+AmbientCG Browser is a Blender extension (no package manager). Verification has two layers:
 
-Once the repo has a stable runtime workflow, replace this generic version with a repo-specific one that knows the normal build, serve, launch, and smoke-test path.
+1. **Plain Python tests** — no Blender, no network. Cover `api.py`, `tools/`, and the license files.
+2. **Blender build + smoke tests** — `build.ps1` builds the extension zip, `index.json`, and `index.html` into `dist\`; `smoke_register.py` and `test_nodes.py` run headless inside Blender.
 
-Keep repo exploration local. Verify the actual environment before running commands; do not assume local execution.
+Keep repo exploration local. Verify the actual environment before running commands; do not assume local execution. This is Windows: PowerShell for the build, Python for the tests. These exact commands also run in CI (`.github/workflows/test.yml`) on Blender 4.2, 4.5 and 5.2.
 
 ## Core Rule
 
-Run the **exact commands** from the current plan's `## Verification` section. Do not invent substitute commands because they "seem right."
+Run the **exact commands** from the current plan's `## Verification` section. If it does not specify commands, use the defaults below. Do not invent substitute commands.
 
-When the repo uses wrapper scripts for platform differences, use those wrapper commands exactly as written in the plan.
+## Commands
 
-## Steps
+### 1. Plain Python tests (no Blender, no network)
 
-### 1. Find the test plan
+```powershell
+python -I -m unittest discover tests
+```
 
-Read the `## Verification` section of the execution plan saved in `docs/plans/`.
+`-I` (isolated mode) matters: `api.py` is loaded by file path, not by importing the package, because importing the package would import `bpy`. This layer covers `test_api.py`, `test_license.py`, and `test_site.py`, plus `tools/`.
 
-That section must tell you:
+### 2. Build the extension (Blender required)
 
-- what to build
-- what to launch or deploy
-- what commands to run
-- what output or observed behavior counts as success
+```powershell
+powershell -ExecutionPolicy Bypass -File build.ps1
+```
 
-If there is no plan file, or the plan has no usable `## Verification` section, stop and say the plan must be updated before `build-and-test` can run.
+`build.ps1` requires Blender on the default path (`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`) or pass `-Blender <path>`:
+- builds the zip via `blender --command extension build`
+- validates it via `blender --command extension validate`
+- checks the GPL text is in the zip (`tools/check_zip.py`)
+- generates `index.json` via `blender --command extension server-generate`
+- generates `index.html` via `tools/make_site.py`
 
-### 2. Detect what changed
+A fresh `dist\` is made on each run (server-generate lists every zip present, so stale zips would be published).
+
+### 3. Headless Blender smoke tests (Blender required)
+
+Every Blender run is headless with an **isolated profile** so the user's real preferences and session are never touched:
+
+```powershell
+$env:BLENDER_USER_RESOURCES = "<scratch dir>\profile"
+& blender --background --factory-startup --python-exit-code 1 --python tests\smoke_register.py
+& blender --background --factory-startup --python-exit-code 1 --python tests\test_nodes.py
+```
+
+- `smoke_register.py` — registers the dev package, checks every class in each `_classes` and the `ambientcg_*` properties, reloads it the way Reload Scripts does, registers again, then unregisters and checks everything is gone. Prints `SMOKE PASSED` / `SMOKE FAILED`.
+- `test_nodes.py` — builds Material/World nodes from generated dummy maps inside Blender. Prints `NODES PASSED` / `NODES FAILED`. Skipped under plain `unittest` (it needs `bpy`).
+
+Do **not** pass `--factory-startup` when a later run must read preferences an earlier run saved (e.g. the update flow). Add `--online-mode` only when a test must reach ambientcg.com.
+
+### 4. Live install/update test (optional, when the plan requires it)
+
+Build, serve, install from a local repository in the isolated profile:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File build.ps1
+python -m http.server --directory dist
+```
+
+Then in a Blender GUI instance with the isolated profile: add `http://127.0.0.1:<port>/index.json` as a remote repository and install from it.
+
+Constraints:
+- One server per port. On Windows a second `http.server` binds a taken port **without an error** and requests go to either server, so stop the old python process (not only the shell job) before starting a new one.
+- Install from the repository, not from disk: Blender only upgrades an extension inside the repository it came from.
+- Do not test by hot-swapping classes or by importing the dev package beside an installed copy.
+- For the update flow: install a version, publish a bumped build into the served folder, run `bpy.ops.ambientcg.check_updates()` in a GUI instance, and point `update.REPO_URL` at the local index in that session (the upgrade runs from a timer).
+
+### 5. Another Blender version
+
+Download the portable zip from `download.blender.org/release/`, extract it in a scratch folder, and run it by full path: `build.ps1 -Blender <path>`. Build is byte-for-byte identical across 4.2, 4.5 and 5.2 from the same files. Under the temp folder, extract with today's file dates (`unzip -DD`).
+
+## Decide what to run
 
 ```bash
 git diff --name-only HEAD
 ```
-
 If nothing staged, also check unstaged:
-
 ```bash
 git diff --name-only
 ```
 
-### 3. Decide whether validation is required
-
-Use the change list plus the verification plan to decide what to run.
-
 | Changed path | Action |
 |---|---|
-| Only docs, bead metadata, or notes changed | Skip runtime validation unless the plan explicitly requires it |
-| Tests changed without runtime behavior changes | Run the test commands from the plan |
-| App/runtime/build/deploy files changed | Run the full verification commands from the plan |
+| Only docs, bead metadata, notes | Skip runtime validation unless the plan requires it |
+| `api.py`, `tools/`, license files, tests under `tests/` for the plain layer | Run `python -I -m unittest discover tests` |
+| `ambientcg_browser/` (package), `build.ps1`, `tools/`, the manifest, the smoke/node tests | Run build **and** the headless Blender smoke tests |
+| `update.py` or install/update flow | Run the live install/update test (layer 4) |
+| `site/`, `dist/` outputs, `index.html` | Run the build and inspect `dist\` |
 
-### 4. Validate the verification contract before running anything
+## Validation before running
 
-Before executing commands, confirm the plan is specific enough.
+Confirm the plan's `## Verification` section has exact commands and success criteria. If it says vague things like "run the app" or "make sure it works," send it back to `writing-plans` to tighten up.
 
-The `## Verification` section should include exact commands and expected evidence, such as:
+## Capture evidence
 
-- working directory when it matters
-- env vars or prerequisites when required
-- build command
-- launch or serve command
-- smoke-test commands such as `curl`, `npm test`, `pytest`, or browser checks
-- URLs, ports, endpoints, files, or logs to inspect
-- success criteria written as observed output or behavior
+For each command note: the command, exit code, relevant output, observed behavior/logs, and whether it matched the stated success criteria. Do not summarize failed checks as "mostly passed." Report the failing step precisely.
 
-If the plan says vague things like "run the app" or "make sure it works," stop and send the work back to `writing-plans` to tighten the verification section.
-
-### 5. Run the plan's verification commands in order
-
-Use the commands exactly as written in the current plan. Adapt them to the actual environment (platform differences, etc.) as needed, but use the exact command strings from the plan.
-
-Examples of acceptable stage-1 verification flows:
-
-- `npm run build`, `npm run preview`, then `curl http://127.0.0.1:4173/health`
-- `pytest tests/viewer/test_session.py -q`
-- `docker compose up -d`, then `curl http://localhost:3000/api/status`
-- start a local server and inspect the UI in a browser if the plan explicitly says to do that
-
-When the plan requires manual observation, record what you actually saw. Do not replace it with a lighter automated check unless the plan explicitly allows that.
-
-### 6. Capture evidence while running
-
-For each verification command, note:
-
-- the command you ran
-- exit code
-- relevant output
-- any observed UI behavior or logs the plan required
-- whether the result matched the stated success criteria
-
-Do not summarize failed checks as "mostly passed." Report the failing step precisely.
-
-### 7. Report results
-
-State exactly what was validated and what evidence you saw.
-
-Minimum report contents:
-
-- changed areas that triggered validation
-- verification commands executed
-- observed outputs and behavior
-- pass/fail status for each major check
-- blockers or plan gaps, if any
+Expected success markers:
+- Plain tests: `unittest` reports `OK` and exit code 0.
+- Build: `Built <path>.zip, ...index.json and ...index.html`, exit 0.
+- Smoke register: prints `SMOKE PASSED`, exit 0.
+- Nodes: prints `NODES PASSED`, exit 0.
 
 Do NOT claim success without evidence.
 
-### 8. Stage 2 specialization trigger
-
-If you notice the same build, launch, and smoke-test sequence repeating across beads, that is a signal to specialize this repo-local skill.
-
-Typical stage-2 specialization examples:
-
-- web app: `npm run build`, `npm run preview`, HTTP smoke checks, browser inspection
-- CLI tool: package build plus command-line smoke tests
-- service: compose or process launch plus API health checks
-- device app: app launch plus live-device smoke tests
-
 ## Fix-and-Retry Loop
 
-If validation fails or behavior is wrong, do NOT proceed to final verification. Instead:
-
+If validation fails, do NOT proceed to final verification:
 1. Fix the code or the verification plan
 2. Re-run `build-and-test`
-3. Repeat until the checks pass
-
-```
-implement → build-and-test → FAIL → fix code → build-and-test → PASS → verification
-```
+3. Repeat until it passes
 
 Only proceed to final verification when `build-and-test` passes.
 
 ## Skip Conditions
 
 Do NOT trigger this skill when:
-
 - the user explicitly says no testing is needed
 - in a planner session
 - only planner artifacts changed and the current plan does not require validation
