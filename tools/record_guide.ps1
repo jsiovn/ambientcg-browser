@@ -17,8 +17,8 @@ function Test-Port { [bool](Get-NetTCPConnection -LocalPort $Port -State Listen 
 & powershell -ExecutionPolicy Bypass -File (Join-Path $root "build.ps1") -Blender $Blender
 if ($LASTEXITCODE -ne 0) { throw "build failed" }
 
-# A fresh profile: the add-on comes from the repository every time. The cache folder in $Work stays.
-Remove-Item -Recurse -Force $profileDir -ErrorAction SilentlyContinue
+# A fresh profile and cache: the add-on comes from the repository and the video shows real downloads.
+Remove-Item -Recurse -Force $profileDir, (Join-Path $Work "cache") -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $profileDir | Out-Null
 $saved = $env:BLENDER_USER_RESOURCES
 $env:BLENDER_USER_RESOURCES = $profileDir

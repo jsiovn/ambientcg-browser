@@ -18,7 +18,7 @@ positions, FFmpeg H.264 MPEG-4). The encode run also writes the poster WebP.
 
 ## Chunk 1: de-risking spikes (scratch only, nothing committed)
 
-- [ ] Install: build, serve with the resolved `python.exe`, `repo-add --clear-all --url http://127.0.0.1:8765/index.json`,
+- [ ] Install: build, serve with the resolved `python.exe`, `repo-add --clear-all --url http://127.0.0.1:8767/index.json`,
   `install -s -e ambientcg_browser`, stop the server; port free before and after.
 - [ ] Encode: 30 dummy PNGs → mp4 in background Blender; `movieclips.load` reports 1280×720. Introspect 5.2 names
   (`sequence_editor.strips`, `image_settings.media_type`).
@@ -55,14 +55,14 @@ Working directory `D:\www\ambientcg-browser`, Blender `C:\Program Files\Blender 
 every Blender run with `BLENDER_USER_RESOURCES=<scratch>\profile`.
 
 1. `powershell -ExecutionPolicy Bypass -File tools\record_guide.ps1 -Work <scratch>\guide` exits 0; afterwards
-   `Get-NetTCPConnection -LocalPort 8765 -State Listen` finds nothing.
+   `Get-NetTCPConnection -LocalPort 8767 -State Listen` finds nothing (8767 is the script's default `-Port`).
 2. Background Blender: `bpy.data.movieclips.load("site/assets/guide.mp4")` → `size` (1280, 720), `fps` 30,
    `frame_duration / 30` in 40-75; file ≤ 8 MB; poster ≤ 150 KB.
 3. Extract 6 frames as PNG with Blender and look at them: AmbientCG tab, results popup, material on the cube, HDRI
    world, the cursor sprite on the clicked buttons.
 4. `python -I -m unittest discover tests` → OK.
 5. `powershell -ExecutionPolicy Bypass -File build.ps1` → `dist\assets\guide.mp4` exists.
-6. Serve `dist` (resolved python.exe, port 8766, stopped afterwards), headless Chrome via Playwright as in
+6. Serve `dist` (resolved python.exe, port 8768, stopped afterwards), headless Chrome via Playwright as in
    `docs/plans/acg-oeq-bilingual-site.md`: in English and Vietnamese the video element has `videoWidth` 1280, no
    `error`, plays (currentTime advances), the heading reads in the chosen language.
 7. Headless smoke tests (`tests/smoke_register.py`, `tests/test_nodes.py`) still pass: nothing under
