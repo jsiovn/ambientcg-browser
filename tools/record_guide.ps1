@@ -45,7 +45,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "could not turn the splash off" }
 
     $recorder = Start-Process -FilePath $Blender -PassThru -Wait -ArgumentList "--online-mode", "--window-geometry",
-        "0", "0", "1280", "720", "--python", "`"$script`"", "--", "record", "`"$Work`""
+        "0", "0", "1280", "720", "--python-exit-code", "1", "--python", "`"$script`"", "--", "record", "`"$Work`""
     if ($recorder.ExitCode -ne 0) { throw "record failed ($($recorder.ExitCode)): see $(Join-Path $Work 'frames.json')" }
 
     & $Blender --background --factory-startup --python-exit-code 1 --python $script -- encode $Work (Join-Path $root "site\assets")

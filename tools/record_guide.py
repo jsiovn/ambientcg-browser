@@ -14,8 +14,8 @@ the cursor over them and writes guide.mp4 (H.264) and guide-poster.webp.
 """
 
 import json
-import shutil
 import os
+import shutil
 import sys
 import time
 import traceback
@@ -43,24 +43,32 @@ def record(work):
     import addon_utils
     import importlib
 
-    user32 = ctypes.windll.user32
-    frames_dir = os.path.join(work, "frames")
-    os.makedirs(frames_dir, exist_ok=True)
-    for name in os.listdir(frames_dir):
-        os.remove(os.path.join(frames_dir, name))
-    module = next(m.__name__ for m in addon_utils.modules() if m.__name__.endswith(".ambientcg_browser"))
-    acg = importlib.import_module(module + ".ambientcg")
+    # An older log must never be encoded as this run's: gone before anything here can fail.
+    log_path = os.path.join(work, "frames.json")
+    if os.path.exists(log_path):
+        os.remove(log_path)
     log = {"frames": [], "clicks": [], "marks": {}, "fallbacks": []}
-    state = {"wait": False, "t0": time.perf_counter(), "hwnd": None, "done": False}
-    win = bpy.context.window_manager.windows[0]
 
     def finish(code, why=""):
         log["exit"] = code
         log["why"] = why
-        with open(os.path.join(work, "frames.json"), "w", encoding="utf-8") as f:
+        with open(log_path, "w", encoding="utf-8") as f:
             json.dump(log, f, indent=1)
         print("AmbientCG Browser: record %s %s" % ("done" if code == 0 else "FAILED", why), flush=True)
         os._exit(code)
+
+    try:
+        user32 = ctypes.windll.user32
+        module = next(m.__name__ for m in addon_utils.modules() if m.__name__.endswith(".ambientcg_browser"))
+        acg = importlib.import_module(module + ".ambientcg")
+    except Exception:
+        finish(2, "the add-on is not installed in this profile, or this is not Windows:\n" + traceback.format_exc())
+    frames_dir = os.path.join(work, "frames")
+    os.makedirs(frames_dir, exist_ok=True)
+    for name in os.listdir(frames_dir):
+        os.remove(os.path.join(frames_dir, name))
+    state = {"wait": False, "t0": time.perf_counter(), "hwnd": None, "done": False}
+    win = bpy.context.window_manager.windows[0]
 
     def now():
         return time.perf_counter() - state["t0"]
@@ -73,7 +81,10 @@ def record(work):
         def visit(hwnd, _):
             owner = wintypes.DWORD()
             user32.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
-            if owner.value == pid and user32.IsWindowVisible(hwnd):
+            kind = ctypes.create_unicode_buffer(64)
+            user32.GetClassNameW(hwnd, kind, 64)
+            # Blender's own window, not its console (--start-console)
+            if owner.value == pid and user32.IsWindowVisible(hwnd) and kind.value == "GHOST_WindowClass":
                 found.append(hwnd)
             return True
         user32.EnumWindows(visit, 0)
