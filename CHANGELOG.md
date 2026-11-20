@@ -8,6 +8,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). T
 
 ## [1.1.2] - 2026-11-20
 
+### Added
+
+- The install page is in English and Vietnamese, and has a video guide.
+
 ### Removed
 
 - The extensions.blender.org special case: the add-on is distributed only from its own repository, and Check for

@@ -47,7 +47,7 @@ body {
 }
 a { color: var(--accent); text-underline-offset: .18em; }
 a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
-img { display: block; max-width: 100%; height: auto; }
+img, video { display: block; max-width: 100%; height: auto; }
 code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: .9em; overflow-wrap: anywhere; }
 p code, li code { background: var(--code-bg); border-radius: 5px; padding: .1em .35em; }
 h1, h2, h3 { line-height: 1.2; margin: 0; letter-spacing: -.015em; }
@@ -135,6 +135,8 @@ ol.steps > li::before {
 .warn p:last-child { margin-bottom: 0; }
 .warn a { color: inherit; }
 
+.guide { margin-top: 2.5rem; }
+.guide h3 { margin-bottom: .4rem; }
 .use { display: grid; gap: 2rem; align-items: start; }
 @media (min-width: 60rem) { .use { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; } }
 
@@ -253,6 +255,12 @@ footer p { margin: 0; }
           <img class="shot" src="assets/results.webp" width="1005" height="429" loading="lazy" alt="The Browse Results window: three rows of eight material preview spheres, each with its name on a button, Rock 064 highlighted, page arrows above and a close button at the top right." data-vi-alt="Cửa sổ Browse Results: ba hàng, mỗi hàng tám quả cầu xem trước vật liệu, mỗi quả có tên trên một nút, Rock 064 được tô sáng, mũi tên lật trang ở trên và nút đóng ở góc trên bên phải.">
           <figcaption><span lang="en">Browse Results: 24 thumbnails a page, straight from ambientCG.</span><span lang="vi">Browse Results: 24 ảnh thu nhỏ mỗi trang, lấy thẳng từ ambientCG.</span></figcaption>
         </figure>
+      </div>
+
+      <div class="guide" id="video">
+        <h3 id="video-title"><span lang="en">Video guide</span><span lang="vi">Video hướng dẫn</span></h3>
+        <p class="sub"><span lang="en">Under a minute, no sound: search, browse the results, add a material, then set an HDRI as the world.</span><span lang="vi">Chưa đến một phút, không có tiếng: tìm kiếm, xem kết quả, thêm một vật liệu, rồi đặt một HDRI làm world.</span></p>
+        <video class="shot" controls preload="metadata" playsinline poster="assets/guide-poster.webp" src="assets/guide.mp4" width="1280" height="720" aria-labelledby="video-title"></video>
       </div>
 
       <div class="cards three" style="margin-top: 2.5rem">

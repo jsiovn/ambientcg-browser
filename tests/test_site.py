@@ -119,6 +119,14 @@ class Page(unittest.TestCase):
         self.assertEqual(page.count('</span><span lang="vi">'), page.count('<span lang="vi">'))
         self.assertEqual(page.count("data-vi-alt="), page.count("<img "))
 
+    def test_the_video_guide_is_on_the_page(self):
+        with open(os.path.join(ROOT, "site", "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        for name, needle in (("guide.mp4", 'src="assets/guide.mp4"'),
+                             ("guide-poster.webp", 'poster="assets/guide-poster.webp"')):
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, "site", "assets", name)), name)
+            self.assertIn(needle, page)
+
     def test_a_missing_package_is_an_error(self):
         with self.assertRaises(LookupError):
             make_site.package_of({"data": [dict(PACKAGE, id="other")]})

@@ -36,6 +36,10 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
 - **Update flow without CI:** install as above, publish a bumped build into the served folder, run
   `bpy.ops.ambientcg.check_updates()` (GUI instance: the upgrade runs from a timer). `update.REPO_URL` is the
   public index, so point it at the local one in that session.
+- **Re-record the video guide** (`site/assets/guide.mp4` + `guide-poster.webp`): `powershell -ExecutionPolicy
+  Bypass -File tools\record_guide.ps1 -Work <scratch dir>`. It builds, installs from `dist\` served on port 8767
+  into the isolated profile `<scratch dir>\profile`, records in a second GUI Blender 5.2 with `--online-mode` (it
+  clicks in its own window: keep the mouse still) and encodes in a background one. Positions are tuned for 5.2.
 - Verify the actual environment before claiming a run passed.
 
 ## Architecture
