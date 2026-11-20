@@ -44,22 +44,6 @@ def operators():
     return [name for name in OPERATORS if hasattr(bpy.types, "AMBIENTCG_OT_" + name)]
 
 
-def check_blender_org_copy(update):
-    """The update check runs for our own repository's copy and is off for one from extensions.blender.org."""
-    package = update.__package__
-    try:
-        for module, expected in (("user_default", False), ("blender_org", True)):
-            update.__package__ = "bl_ext.%s.ambientcg_browser" % module
-            check("installed in %s: from_blender_org is %s" % (module, expected),
-                  update.from_blender_org(bpy.context) == expected)
-            check("installed in %s: Check for Updates %s" % (module, "off" if expected else "on"),
-                  bpy.ops.ambientcg.check_updates.poll() != expected)
-            check("installed in %s: Update panel %s" % (module, "hidden" if expected else "shown"),
-                  bpy.types.AMBIENTCG_PT_update.poll(bpy.context) != expected)
-    finally:
-        update.__package__ = package
-
-
 def run():
     sys.path.insert(0, ROOT)
     import ambientcg_browser as pkg
@@ -77,7 +61,6 @@ def run():
               sorted(set(OPERATORS) - set(operators())))
         check("%s: the Update panel sits under the main panel" % round_,
               bpy.types.AMBIENTCG_PT_update.bl_parent_id == bpy.types.AMBIENTCG_PT_main.bl_idname)
-        check_blender_org_copy(sys.modules[pkg.__name__ + ".update"])
         pkg.unregister()
         left = ["%s.%s" % (m, c) for m, c, ok in registered(pkg) if ok]
         check("%s: unregister removes every class" % round_, not left, ", ".join(left))

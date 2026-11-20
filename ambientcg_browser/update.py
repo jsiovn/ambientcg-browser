@@ -2,7 +2,6 @@
 
 Blender does the actual download / upgrade: this module compares versions, registers the remote
 repository on first use, and runs Blender's upgrade of that repository when a newer one exists.
-A copy installed from extensions.blender.org is left to Blender's own updates: the check is off there.
 """
 
 import functools
@@ -10,7 +9,6 @@ import json
 import re
 import time
 import tomllib
-import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -20,7 +18,6 @@ REPO_URL = "https://jsiovn.github.io/ambientcg-browser/index.json"
 INSTALL_PAGE = "https://jsiovn.github.io/ambientcg-browser/"
 REPO_NAME = "AmbientCG Browser"
 EXTENSION_ID = "ambientcg_browser"
-BLENDER_ORG_HOST = "extensions.blender.org"
 
 _status = ""
 
@@ -49,14 +46,6 @@ def _repo_module_of_self():
     # Extensions load as bl_ext.<repository module>.<extension id>.
     parts = __package__.split(".")
     return parts[1] if len(parts) == 3 and parts[0] == "bl_ext" else None
-
-
-def from_blender_org(context):
-    """Whether this copy came from extensions.blender.org, whose terms forbid loading code from elsewhere."""
-    module = _repo_module_of_self()
-    return any(repo.module == module and repo.use_remote_url
-               and urllib.parse.urlparse(repo.remote_url).hostname == BLENDER_ORG_HOST
-               for repo in context.preferences.extensions.repos)
 
 
 def ensure_repo(context):
@@ -89,13 +78,6 @@ class AMBIENTCG_OT_check_updates(bpy.types.Operator):
     bl_idname = "ambientcg.check_updates"
     bl_label = "Check for Updates"
     bl_description = "Compare this version with the AmbientCG Browser repository and install the newer one"
-
-    @classmethod
-    def poll(cls, context):
-        if from_blender_org(context):
-            cls.poll_message_set("Installed from extensions.blender.org: Blender updates it")
-            return False
-        return True
 
     def execute(self, context):
         global _status
@@ -155,10 +137,6 @@ class AMBIENTCG_PT_update(bpy.types.Panel):
     bl_label = "Update"
     bl_idname = "AMBIENTCG_PT_update"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return not from_blender_org(context)
 
     def draw(self, context):
         draw(self.layout.column())

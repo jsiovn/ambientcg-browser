@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The version is
 `version` in `ambientcg_browser/blender_manifest.toml`; publishing a version requires its section here.
 
+## [1.1.2] - 2026-11-20
+
+### Removed
+
+- The extensions.blender.org special case: the add-on is distributed only from its own repository, and Check for
+  Updates works for every installed copy again.
+
 ## [1.1.1] - 2026-11-14
 
 ### Changed

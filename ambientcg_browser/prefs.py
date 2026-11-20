@@ -116,9 +116,8 @@ class AmbientCGPreferences(bpy.types.AddonPreferences):
             col.label(text="Downloads go to the system temp folder, which the system may clear", icon='INFO')
         elif folder_state(folder) is not None:
             col.label(text="Folder not found: downloads go to the system temp folder", icon='ERROR')
-        if not update.from_blender_org(context):
-            col.separator()
-            update.draw(col)
+        col.separator()
+        update.draw(col)
         col.separator()
         row = col.row(align=True)
         row.operator("wm.url_open", text="Install Page", icon='URL').url = update.INSTALL_PAGE

@@ -62,9 +62,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   the main thread. `MARK_KEY` `ambientcg_browser` (JSON) marks our Material / World; `LEGACY_KEY` is read, never
   written. Settings on `Scene.ambientcg_browser`; results, picked id and previews are module state, never saved.
 - `update.py`: reads the published `index.json`, compares with the manifest version, adds the remote repository
-  on first use and runs Blender's own upgrade from a timer. Off for a copy installed from extensions.blender.org
-  (`from_blender_org`: its terms forbid loading code from elsewhere; Blender updates that copy). `draw()` is
-  shared by the Update sub-panel and the preferences.
+  on first use and runs Blender's own upgrade from a timer. `draw()` is shared by the Update sub-panel and the
+  preferences.
 - `site/index.html` + `tools/make_site.py`: the landing page, filled from `dist/index.json` (`{{token}}`
   values). Self-contained: no third-party requests. The install link keeps the form Blender's own generator emits.
 - `.github/workflows/publish.yml`: on push to `main`, gated on the manifest version: deploys `dist` to GitHub
