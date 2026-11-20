@@ -115,8 +115,7 @@ makes with a custom property so it can find them again.
 ## Privacy
 
 The add-on talks only to ambientcg.com and its file servers (searches, thumbnails, downloads) and to
-`jsiovn.github.io` (the update check, when you ask for it; never for a copy installed from
-extensions.blender.org). No telemetry, no account, no API key.
+`jsiovn.github.io` (the update check, when you ask for it). No telemetry, no account, no API key.
 
 ## Credits
 

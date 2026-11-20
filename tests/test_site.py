@@ -102,6 +102,31 @@ class Page(unittest.TestCase):
             self.assertTrue(os.path.isfile(os.path.join(tmp, "assets", name)), name)
             self.assertTrue("assets/" + name in page, "%s is in site/assets but not on the page" % name)
 
+    def test_the_page_is_in_english_and_vietnamese(self):
+        tmp = tempfile.mkdtemp(prefix="ambientcg-browser-site-")
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        with open(os.path.join(tmp, "index.json"), "w", encoding="utf-8") as f:
+            json.dump({"version": "v1", "blocklist": [], "data": [PACKAGE]}, f)
+        make_site.build(tmp)
+        with open(os.path.join(tmp, "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        self.assertFalse("{{" in page or "}}" in page, "a value of the template was left unfilled")
+        for needle in ('<html lang="en">', 'data-lang="en"', 'data-lang="vi"', ">Tiếng Việt<",
+                       "Kéo thả vào Blender để cài đặt", "Phiên bản 1.2.3", "Không chính thức"):
+            self.assertTrue(needle in page, needle)
+        # Each Vietnamese span follows an English one (text outside any span is not caught here).
+        self.assertEqual(page.count('<span lang="en">'), page.count('<span lang="vi">'))
+        self.assertEqual(page.count('</span><span lang="vi">'), page.count('<span lang="vi">'))
+        self.assertEqual(page.count("data-vi-alt="), page.count("<img "))
+
+    def test_the_video_guide_is_on_the_page(self):
+        with open(os.path.join(ROOT, "site", "index.html"), encoding="utf-8") as f:
+            page = f.read()
+        for name, needle in (("guide.mp4", 'src="assets/guide.mp4"'),
+                             ("guide-poster.webp", 'poster="assets/guide-poster.webp"')):
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, "site", "assets", name)), name)
+            self.assertIn(needle, page)
+
     def test_a_missing_package_is_an_error(self):
         with self.assertRaises(LookupError):
             make_site.package_of({"data": [dict(PACKAGE, id="other")]})

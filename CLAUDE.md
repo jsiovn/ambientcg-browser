@@ -36,6 +36,10 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
 - **Update flow without CI:** install as above, publish a bumped build into the served folder, run
   `bpy.ops.ambientcg.check_updates()` (GUI instance: the upgrade runs from a timer). `update.REPO_URL` is the
   public index, so point it at the local one in that session.
+- **Re-record the video guide** (`site/assets/guide.mp4` + `guide-poster.webp`): `powershell -ExecutionPolicy
+  Bypass -File tools\record_guide.ps1 -Work <scratch dir>`. It builds, installs from `dist\` served on port 8767
+  into the isolated profile `<scratch dir>\profile`, records in a second GUI Blender 5.2 with `--online-mode` (it
+  clicks in its own window: keep the mouse still) and encodes in a background one. Positions are tuned for 5.2.
 - Verify the actual environment before claiming a run passed.
 
 ## Architecture
@@ -62,11 +66,12 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   the main thread. `MARK_KEY` `ambientcg_browser` (JSON) marks our Material / World; `LEGACY_KEY` is read, never
   written. Settings on `Scene.ambientcg_browser`; results, picked id and previews are module state, never saved.
 - `update.py`: reads the published `index.json`, compares with the manifest version, adds the remote repository
-  on first use and runs Blender's own upgrade from a timer. Off for a copy installed from extensions.blender.org
-  (`from_blender_org`: its terms forbid loading code from elsewhere; Blender updates that copy). `draw()` is
-  shared by the Update sub-panel and the preferences.
+  on first use and runs Blender's own upgrade from a timer. `draw()` is shared by the Update sub-panel and the
+  preferences.
 - `site/index.html` + `tools/make_site.py`: the landing page, filled from `dist/index.json` (`{{token}}`
   values). Self-contained: no third-party requests. The install link keeps the form Blender's own generator emits.
+  English and Vietnamese: every visible text is an adjacent `lang="en"` / `lang="vi"` span pair, an `alt` or
+  `aria-label` has its `data-vi-<attr>`, script strings live in `TEXT`; the switcher remembers the choice.
 - `.github/workflows/publish.yml`: on push to `main`, gated on the manifest version: deploys `dist` to GitHub
   Pages and creates release `v<version>`. `test.yml`: plain tests, then build + smoke + nodes on Blender 4.2,
   4.5 and 5.2.
@@ -86,7 +91,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   add-on and its version, nothing about the user.
 - **Install from the repository, not from disk:** Blender only upgrades an extension inside the repository it
   came from.
-- English only for UI strings and comments; comment only non-obvious *why*.
+- English only for the add-on's UI strings and for comments (the site is English + Vietnamese); comment only
+  non-obvious *why*.
 - `blender_version_min = "4.2.0"`: keep to APIs that exist there, the `test` workflow checks it.
 
 ## Git
