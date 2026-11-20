@@ -66,6 +66,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   preferences.
 - `site/index.html` + `tools/make_site.py`: the landing page, filled from `dist/index.json` (`{{token}}`
   values). Self-contained: no third-party requests. The install link keeps the form Blender's own generator emits.
+  English and Vietnamese: every visible text is an adjacent `lang="en"` / `lang="vi"` span pair, an `alt` or
+  `aria-label` has its `data-vi-<attr>`, script strings live in `TEXT`; the switcher remembers the choice.
 - `.github/workflows/publish.yml`: on push to `main`, gated on the manifest version: deploys `dist` to GitHub
   Pages and creates release `v<version>`. `test.yml`: plain tests, then build + smoke + nodes on Blender 4.2,
   4.5 and 5.2.
@@ -85,7 +87,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1    # dist\ (git-ignored): zip
   add-on and its version, nothing about the user.
 - **Install from the repository, not from disk:** Blender only upgrades an extension inside the repository it
   came from.
-- English only for UI strings and comments; comment only non-obvious *why*.
+- English only for the add-on's UI strings and for comments (the site is English + Vietnamese); comment only
+  non-obvious *why*.
 - `blender_version_min = "4.2.0"`: keep to APIs that exist there, the `test` workflow checks it.
 
 ## Git
