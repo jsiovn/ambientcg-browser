@@ -114,8 +114,9 @@ class Page(unittest.TestCase):
         for needle in ('<html lang="en">', 'data-lang="en"', 'data-lang="vi"', ">Tiếng Việt<",
                        "Kéo thả vào Blender để cài đặt", "Phiên bản 1.2.3", "Không chính thức"):
             self.assertTrue(needle in page, needle)
-        # Every English text has its Vietnamese twin.
+        # Each Vietnamese span follows an English one (text outside any span is not caught here).
         self.assertEqual(page.count('<span lang="en">'), page.count('<span lang="vi">'))
+        self.assertEqual(page.count('</span><span lang="vi">'), page.count('<span lang="vi">'))
         self.assertEqual(page.count("data-vi-alt="), page.count("<img "))
 
     def test_a_missing_package_is_an_error(self):

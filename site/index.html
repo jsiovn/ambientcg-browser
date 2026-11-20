@@ -13,8 +13,9 @@
 <meta property="og:image" content="{{site_url}}assets/panel.webp">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <!-- A template: tools/make_site.py fills the values in double braces from dist/index.json. Self-contained by
-     design: no third-party scripts, fonts or styles. English and Vietnamese: each text is a pair of
-     lang="en" / lang="vi" spans and the CSS hides the language that <html lang> does not name. -->
+     design: no third-party scripts, fonts or styles. English and Vietnamese: each text is a pair of adjacent
+     lang="en" / lang="vi" spans and the CSS hides the language that <html lang> does not name, so never mark an
+     English term inside Vietnamese text with lang="en". Attributes carry data-vi-<attr>, script strings are in TEXT. -->
 <script>
 // Before the first paint, so a reload does not flash the other language.
 try { var saved = localStorage.getItem('ambientcg-browser-lang'); if (saved === 'en' || saved === 'vi') document.documentElement.lang = saved; } catch (error) { }
@@ -66,7 +67,7 @@ p { margin: 0 0 1rem; }
 .top nav a:hover { color: var(--ink); text-decoration: underline; }
 @media (max-width: 40rem) { .top nav a.more { display: none; } }
 .langs { white-space: nowrap; }
-.langs button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; cursor: pointer; }
+.langs button { font: inherit; color: var(--muted); background: none; border: 0; padding: .25rem 0; cursor: pointer; }
 .langs button:hover { color: var(--ink); text-decoration: underline; }
 .langs button[aria-pressed="true"] { color: var(--ink); font-weight: 700; }
 .langs .sep { color: var(--line); margin: 0 .45rem; }
@@ -190,7 +191,7 @@ footer p { margin: 0; }
         <span><span lang="en">Drag onto Blender to install</span><span lang="vi">Kéo thả vào Blender để cài đặt</span><small>AmbientCG Browser {{version}} · {{size}}</small></span>
       </a>
       <p class="hint" id="drag-hint" role="status"><span lang="en">Drag this button onto an open Blender window. <a href="#install">How it works</a></span><span lang="vi">Kéo nút này thả vào một cửa sổ Blender đang mở. <a href="#install">Cách hoạt động</a></span></p>
-      <p class="unofficial"><span lang="en">Unofficial: not affiliated with or endorsed by ambientCG.</span><span lang="vi">Không chính thức: không liên kết với ambientCG và không được ambientCG bảo trợ.</span></p>
+      <p class="unofficial"><span lang="en">Unofficial: not affiliated with or endorsed by ambientCG.</span><span lang="vi">Không chính thức: không liên kết với ambientCG và không được ambientCG chứng thực.</span></p>
     </div>
     <figure>
       <img class="shot" src="assets/panel.webp" width="1220" height="790" alt="Blender's 3D Viewport with the AmbientCG sidebar tab open: a search for rock, the picked result Rock 064 with its preview, the download options and the Add Material button. The rock material is on a sphere in the viewport." data-vi-alt="3D Viewport của Blender với thẻ AmbientCG mở ở thanh bên: tìm kiếm rock, kết quả đã chọn Rock 064 cùng ảnh xem trước, các tùy chọn tải xuống và nút Add Material. Vật liệu đá được gán cho một quả cầu trong khung nhìn.">
@@ -312,7 +313,7 @@ footer p { margin: 0; }
       <div class="about">
         <div>
           <h3><span lang="en">Unofficial</span><span lang="vi">Không chính thức</span></h3>
-          <p><span lang="en">AmbientCG Browser is an independent project. It is not affiliated with, endorsed by or supported by <a href="https://ambientcg.com">ambientCG</a>; it only uses the site's public API.</span><span lang="vi">AmbientCG Browser là một dự án độc lập, không liên kết với <a href="https://ambientcg.com">ambientCG</a>, cũng không được ambientCG bảo trợ hay hỗ trợ; nó chỉ dùng API công khai của trang.</span></p>
+          <p><span lang="en">AmbientCG Browser is an independent project. It is not affiliated with, endorsed by or supported by <a href="https://ambientcg.com">ambientCG</a>; it only uses the site's public API.</span><span lang="vi">AmbientCG Browser là một dự án độc lập, không liên kết với <a href="https://ambientcg.com">ambientCG</a>, cũng không được ambientCG chứng thực hay hỗ trợ; nó chỉ dùng API công khai của trang.</span></p>
         </div>
         <div>
           <h3><span lang="en">The assets are CC0</span><span lang="vi">Tài nguyên theo giấy phép CC0</span></h3>
